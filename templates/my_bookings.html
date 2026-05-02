@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% block title %}Mening biletlarim — BiletShop{% endblock %}
+{% block extra_css %}
+<style>
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.page-header h1 { font-size: 1.5rem; font-weight: 800; }
+
+.bookings-list { display: flex; flex-direction: column; gap: 16px; }
+
+.booking-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+    display: grid; grid-template-columns: 160px 1fr auto;
+    transition: border-color .2s;
+}
+
+.booking-card:hover { border-color: var(--primary); }
+
+@media (max-width: 680px) {
+    .booking-card { grid-template-columns: 1fr; }
+}
+
+.booking-img {
+    height: 100%; min-height: 120px; background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+}
+
+.booking-img img { width: 100%; height: 100%; object-fit: cover; }
+.booking-img i   { font-size: 2rem; color: var(--surface2); filter: brightness(2); }
+
+.booking-body { padding: 18px; }
+.booking-body h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+
+.booking-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+.booking-meta span { font-size: .82rem; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+.booking-meta i { color: var(--primary); }
+
+.booking-code {
+    font-family: monospace; font-size: .9rem;
+    background: var(--bg); border: 1px solid var(--border);
+    padding: 3px 10px; border-radius: 6px; color: var(--muted);
+}
+
+.booking-actions {
+    padding: 18px; display: flex; flex-direction: column;
+    align-items: flex-end; justify-content: space-between; gap: 10px;
+    border-left: 1px solid var(--border);
+}
+
+@media (max-width: 680px) {
+    .booking-actions { border-left: none; border-top: 1px solid var(--border); flex-direction: row; align-items: center; }
+}
+
+.booking-actions .price { font-size: 1.1rem; font-weight: 800; color: var(--accent); text-align: right; }
+.booking-actions .price small { font-size: .78rem; color: var(--muted); font-weight: 400; display: block; }
+
+.btn-download {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--primary); color: #fff;
+    padding: 8px 14px; border-radius: 8px; font-size: .85rem; font-weight: 700;
+    text-decoration: none; white-space: nowrap; transition: background .2s;
+}
+.btn-download:hover { background: var(--primary-d); }
+
+.empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+.empty i { font-size: 3rem; margin-bottom: 16px; display: block; color: var(--surface2); }
+</style>
+{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <h1><i class="fa fa-ticket-alt" style="color:var(--primary);"></i> Mening biletlarim</h1>
+    <a href="{% url 'event_list' %}" class="btn-primary">
+        <i class="fa fa-plus"></i> Yangi bilet
+    </a>
+</div>
+
+{% if bookings %}
+<div class="bookings-list">
+    {% for booking in bookings %}
+    <div class="booking-card">
+        <div class="booking-img">
+            {% if booking.event.image %}
+                <img src="{{ booking.event.image.url }}" alt="{{ booking.event.title }}">
+            {% else %}
+                <i class="fa fa-ticket-alt"></i>
+            {% endif %}
+        </div>
+
+        <div class="booking-body">
+            <h3>{{ booking.event.title }}</h3>
+            <div class="booking-meta">
+                <span><i class="fa fa-calendar"></i> {{ booking.event.event_date|date:"d M Y, H:i" }}</span>
+                <span><i class="fa fa-map-marker-alt"></i> {{ booking.event.venue }}</span>
+                <span><i class="fa fa-chair"></i> {{ booking.ticket_type.name }} × {{ booking.quantity }}</span>
+            </div>
+            <span class="booking-code">{{ booking.booking_code }}</span>
+            &nbsp;
+            {% if booking.status == 'confirmed' %}
+                <span class="badge badge-success">Tasdiqlangan</span>
+            {% elif booking.status == 'cancelled' %}
+                <span class="badge badge-danger">Bekor qilindi</span>
+            {% else %}
+                <span class="badge badge-muted">Ishlatilgan</span>
+            {% endif %}
+        </div>
+
+        <div class="booking-actions">
+            <div class="price">
+                {{ booking.total_price }} so'm
+                <small>{{ booking.created_at|date:"d.m.Y" }}</small>
+            </div>
+            {% if booking.status == 'confirmed' %}
+            <a href="{% url 'download_ticket' booking.pk %}" class="btn-download">
+                <i class="fa fa-download"></i> Yuklab olish
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="empty">
+    <i class="fa fa-ticket-alt"></i>
+    <p>Hali bilet bron qilmadingiz.</p>
+    <a href="{% url 'event_list' %}" class="btn-primary" style="margin-top:16px; display:inline-flex;">
+        Tadbirlarni ko'rish
+    </a>
+</div>
+{% endif %}
+
+{% endblock %}

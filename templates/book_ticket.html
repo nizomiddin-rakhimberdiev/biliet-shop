@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% block title %}Bron qilish — {{ event.title }}{% endblock %}
+{% block extra_css %}
+<style>
+.book-grid {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 28px;
+    max-width: 960px;
+    margin: 0 auto;
+    align-items: start;
+}
+
+@media (max-width: 780px) { .book-grid { grid-template-columns: 1fr; } }
+
+/* Summary card */
+.summary-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+}
+
+.summary-img {
+    height: 180px; background: var(--surface2);
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+
+.summary-img img { width: 100%; height: 100%; object-fit: cover; }
+.summary-img i   { font-size: 3rem; color: var(--surface2); }
+
+.summary-body { padding: 20px; }
+
+.sum-row {
+    display: flex; justify-content: space-between;
+    padding: 9px 0; border-bottom: 1px solid var(--border);
+    font-size: .9rem;
+}
+.sum-row:last-child { border: none; }
+.sum-row .lbl { color: var(--muted); }
+.sum-row .val { font-weight: 700; }
+.sum-row .val.accent { color: var(--accent); font-size: 1.1rem; }
+
+/* Form card */
+.form-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 28px;
+}
+
+.form-card h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 22px; }
+
+.quantity-control {
+    display: flex; align-items: center;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 9px; overflow: hidden;
+}
+
+.quantity-control button {
+    background: none; border: none; color: var(--muted);
+    width: 44px; height: 44px; font-size: 1.2rem;
+    cursor: pointer; transition: all .2s;
+}
+
+.quantity-control button:hover { background: var(--primary-l); color: var(--primary); }
+
+.quantity-control input {
+    flex: 1; text-align: center; background: none;
+    border: none; border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+    color: var(--text); font-size: 1.1rem; font-weight: 700;
+    padding: 0 12px; height: 44px; outline: none;
+    -moz-appearance: textfield;
+}
+
+.quantity-control input::-webkit-outer-spin-button,
+.quantity-control input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+.price-preview {
+    background: var(--primary-l); border: 1px solid rgba(99,102,241,.3);
+    border-radius: 10px; padding: 14px 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px;
+}
+
+.price-preview .total-label { color: #a5b4fc; font-size: .9rem; }
+.price-preview .total-val   { font-size: 1.3rem; font-weight: 800; color: var(--accent); }
+
+.submit-btn {
+    width: 100%; background: var(--primary); color: #fff;
+    border: none; padding: 13px; border-radius: 10px;
+    font-weight: 700; font-size: 1rem; cursor: pointer; transition: background .2s;
+}
+
+.submit-btn:hover { background: var(--primary-d); }
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const input = document.getElementById('id_quantity');
+    const pricePerTicket = {{ ticket_type.price }};
+    const totalEl = document.getElementById('total-price');
+    const availableSeats = {{ ticket_type.available_seats }};
+
+    function updateTotal() {
+        let qty = parseInt(input.value) || 1;
+        if (qty < 1) qty = 1;
+        if (qty > availableSeats) qty = availableSeats;
+        input.value = qty;
+        totalEl.textContent = (qty * pricePerTicket).toLocaleString('uz-UZ') + " so'm";
+    }
+
+    document.querySelector('.minus').addEventListener('click', () => {
+        input.value = Math.max(1, parseInt(input.value) - 1);
+        updateTotal();
+    });
+
+    document.querySelector('.plus').addEventListener('click', () => {
+        input.value = Math.min(availableSeats, parseInt(input.value) + 1);
+        updateTotal();
+    });
+
+    input.addEventListener('input', updateTotal);
+    updateTotal();
+});
+</script>
+{% endblock %}
+{% block content %}
+
+<div style="margin-bottom:20px;">
+    <a href="{% url 'event_detail' event.pk %}" style="color:var(--muted); text-decoration:none; font-size:.9rem;">
+        <i class="fa fa-arrow-left"></i> Orqaga
+    </a>
+</div>
+
+<div class="book-grid">
+
+    <!-- Forma -->
+    <div class="form-card">
+        <h2><i class="fa fa-ticket-alt" style="color:var(--primary);"></i> Bron ma'lumotlari</h2>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="field">
+                <label>Biletlar soni (max {{ ticket_type.available_seats }})</label>
+                <div class="quantity-control">
+                    <button type="button" class="minus"><i class="fa fa-minus"></i></button>
+                    <input type="number" id="id_quantity" name="quantity" value="1" min="1" max="{{ ticket_type.available_seats }}">
+                    <button type="button" class="plus"><i class="fa fa-plus"></i></button>
+                </div>
+                {% if form.quantity.errors %}
+                <p class="field-error">{{ form.quantity.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <div class="field">
+                <label>Telefon raqam</label>
+                <input type="text" name="phone" id="id_phone" placeholder="+998901234567"
+                       value="{{ form.phone.value|default:'' }}">
+                {% if form.phone.errors %}
+                <p class="field-error">{{ form.phone.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <div class="price-preview">
+                <span class="total-label">Jami to'lov:</span>
+                <span class="total-val" id="total-price">{{ ticket_type.price }} so'm</span>
+            </div>
+
+            <button type="submit" class="submit-btn">
+                <i class="fa fa-lock"></i> Bron qilish va to'lash
+            </button>
+        </form>
+    </div>
+
+    <!-- Xulosa -->
+    <div class="summary-card">
+        <div class="summary-img">
+            {% if event.image %}
+                <img src="{{ event.image.url }}" alt="{{ event.title }}">
+            {% else %}
+                <i class="fa fa-ticket-alt fa-3x" style="color:var(--surface2);"></i>
+            {% endif %}
+        </div>
+        <div class="summary-body">
+            <p style="font-weight:700; font-size:1rem; margin-bottom:14px;">{{ event.title }}</p>
+            <div class="sum-row"><span class="lbl">Bilet turi</span><span class="val">{{ ticket_type.name }}</span></div>
+            <div class="sum-row"><span class="lbl">Joy</span><span class="val">{{ event.venue }}</span></div>
+            <div class="sum-row"><span class="lbl">Sana</span><span class="val">{{ event.event_date|date:"d M Y, H:i" }}</span></div>
+            <div class="sum-row"><span class="lbl">Narx</span><span class="val">{{ ticket_type.price }} so'm / bilet</span></div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

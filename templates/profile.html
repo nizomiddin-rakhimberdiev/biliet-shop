@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block title %}Profil — BiletShop{% endblock %}
+{% block extra_css %}
+<style>
+.profile-grid { display: grid; grid-template-columns: 280px 1fr; gap: 24px; align-items: start; }
+@media (max-width: 760px) { .profile-grid { grid-template-columns: 1fr; } }
+
+.profile-sidebar { position: sticky; top: 84px; }
+
+.avatar-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 28px; text-align: center; margin-bottom: 14px;
+}
+
+.avatar-img {
+    width: 88px; height: 88px; border-radius: 50%; object-fit: cover;
+    border: 3px solid var(--primary); margin-bottom: 14px;
+}
+
+.avatar-placeholder {
+    width: 88px; height: 88px; border-radius: 50%;
+    background: var(--primary-l); border: 3px solid var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.2rem; color: var(--primary); margin: 0 auto 14px;
+}
+
+.avatar-box h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+.avatar-box p  { font-size: .85rem; color: var(--muted); margin-bottom: 14px; }
+
+.stat-row { display: flex; gap: 10px; justify-content: center; margin-bottom: 16px; }
+.stat-item { flex: 1; background: var(--primary-l); border-radius: 10px; padding: 10px; text-align: center; }
+.stat-item .num { font-size: 1.4rem; font-weight: 800; color: var(--primary); }
+.stat-item p    { font-size: .75rem; color: var(--muted); margin-top: 2px; }
+
+/* Main */
+.section-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.section-head { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.section-head h3 { font-size: 1rem; font-weight: 700; }
+
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 12px 16px; text-align: left; font-size: .88rem; }
+th { background: rgba(255,255,255,.03); color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); }
+td { border-bottom: 1px solid var(--border); }
+tr:last-child td { border: none; }
+tr:hover td { background: rgba(255,255,255,.02); }
+</style>
+{% endblock %}
+{% block content %}
+
+<div class="profile-grid">
+
+    <!-- Sidebar -->
+    <div class="profile-sidebar">
+        <div class="avatar-box">
+            {% if user.profil.avatar %}
+                <img class="avatar-img" src="{{ user.profil.avatar.url }}" alt="avatar">
+            {% else %}
+                <div class="avatar-placeholder"><i class="fa fa-user"></i></div>
+            {% endif %}
+            <h2>{{ user.username }}</h2>
+            <p>{{ user.email|default:"Email kiritilmagan" }}</p>
+            <div class="stat-row">
+                <div class="stat-item">
+                    <div class="num">{{ bookings.count }}</div>
+                    <p>Biletlar</p>
+                </div>
+            </div>
+            <a href="{% url 'profile_update' %}" class="btn-primary" style="width:100%; justify-content:center;">
+                <i class="fa fa-pencil"></i> Profilni tahrirlash
+            </a>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div>
+        <div class="section-card">
+            <div class="section-head">
+                <h3><i class="fa fa-ticket-alt" style="color:var(--primary);margin-right:6px;"></i> Bronlarim tarixi</h3>
+                <a href="{% url 'my_bookings' %}" style="color:var(--primary); font-size:.85rem; text-decoration:none;">Barchasi</a>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tadbir</th>
+                        <th>Bilet turi</th>
+                        <th>Soni</th>
+                        <th>Jami</th>
+                        <th>Holat</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in bookings %}
+                    <tr>
+                        <td style="font-weight:600;">{{ booking.event.title }}</td>
+                        <td>{{ booking.ticket_type.name }}</td>
+                        <td>{{ booking.quantity }}</td>
+                        <td style="color:var(--accent); font-weight:700;">{{ booking.total_price }} so'm</td>
+                        <td>
+                            {% if booking.status == 'confirmed' %}
+                                <span class="badge badge-success">Tasdiqlangan</span>
+                            {% elif booking.status == 'cancelled' %}
+                                <span class="badge badge-danger">Bekor</span>
+                            {% else %}
+                                <span class="badge badge-muted">Ishlatilgan</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if booking.status == 'confirmed' %}
+                            <a href="{% url 'download_ticket' booking.pk %}" style="color:var(--primary); font-size:.85rem; text-decoration:none; white-space:nowrap;">
+                                <i class="fa fa-download"></i> Yuklab olish
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" style="text-align:center; color:var(--muted); padding:30px;">Hali bron qilinmagan</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

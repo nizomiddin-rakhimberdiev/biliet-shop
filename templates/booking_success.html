@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block title %}Bron muvaffaqiyatli — BiletShop{% endblock %}
+{% block extra_css %}
+<style>
+.success-wrap { max-width: 640px; margin: 0 auto; text-align: center; }
+
+.checkmark {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: rgba(34,197,94,.15); border: 2px solid rgba(34,197,94,.4);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px; font-size: 2rem; color: var(--success);
+}
+
+.success-wrap h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; }
+.success-wrap .sub { color: var(--muted); margin-bottom: 32px; }
+
+.ticket-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden; margin-bottom: 24px;
+    text-align: left;
+}
+
+.ticket-header {
+    background: linear-gradient(135deg, #1e1b4b, #1e3a5f);
+    padding: 20px 24px; display: flex; justify-content: space-between; align-items: center;
+}
+
+.ticket-header .event-name { font-weight: 700; font-size: 1.05rem; }
+.ticket-header .ticket-type { color: #a5b4fc; font-size: .85rem; margin-top: 4px; }
+
+.ticket-body { padding: 24px; }
+
+.ticket-rows { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+
+.ticket-row .lbl { font-size: .8rem; color: var(--muted); margin-bottom: 3px; }
+.ticket-row .val { font-weight: 700; }
+
+.booking-code-box {
+    background: var(--bg); border: 2px dashed var(--border);
+    border-radius: 10px; padding: 16px; text-align: center;
+}
+
+.booking-code-box .code-label { font-size: .8rem; color: var(--muted); margin-bottom: 6px; }
+.booking-code-box .code       { font-size: 1.8rem; font-weight: 800; letter-spacing: 4px; color: var(--primary); font-family: monospace; }
+
+.ticket-divider {
+    position: relative; margin: 0;
+    border: none; border-top: 2px dashed var(--border);
+}
+
+.actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+</style>
+{% endblock %}
+{% block content %}
+
+<div class="success-wrap">
+    <div class="checkmark"><i class="fa fa-check"></i></div>
+    <h1>Bron muvaffaqiyatli!</h1>
+    <p class="sub">Elektron biletingiz tayyor. Yuklab oling va tadbirda QR kodni ko'rsating.</p>
+
+    <div class="ticket-card">
+        <div class="ticket-header">
+            <div>
+                <div class="event-name">{{ booking.event.title }}</div>
+                <div class="ticket-type">{{ booking.ticket_type.name }}</div>
+            </div>
+            <span class="badge badge-success">Tasdiqlangan</span>
+        </div>
+
+        <div class="ticket-body">
+            <div class="ticket-rows">
+                <div class="ticket-row">
+                    <div class="lbl"><i class="fa fa-calendar"></i> Sana</div>
+                    <div class="val">{{ booking.event.event_date|date:"d M Y" }}</div>
+                </div>
+                <div class="ticket-row">
+                    <div class="lbl"><i class="fa fa-clock"></i> Vaqt</div>
+                    <div class="val">{{ booking.event.event_date|date:"H:i" }}</div>
+                </div>
+                <div class="ticket-row">
+                    <div class="lbl"><i class="fa fa-map-marker-alt"></i> Joy</div>
+                    <div class="val">{{ booking.event.venue }}</div>
+                </div>
+                <div class="ticket-row">
+                    <div class="lbl"><i class="fa fa-chair"></i> Miqdor</div>
+                    <div class="val">{{ booking.quantity }} ta bilet</div>
+                </div>
+                <div class="ticket-row">
+                    <div class="lbl"><i class="fa fa-phone"></i> Telefon</div>
+                    <div class="val">{{ booking.phone }}</div>
+                </div>
+                <div class="ticket-row">
+                    <div class="lbl"><i class="fa fa-money-bill"></i> Jami</div>
+                    <div class="val" style="color:var(--accent);">{{ booking.total_price }} so'm</div>
+                </div>
+            </div>
+
+            <hr class="ticket-divider">
+            <br>
+
+            <div class="booking-code-box">
+                <div class="code-label">BRON KODI / BOOKING CODE</div>
+                <div class="code">{{ booking.booking_code }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="actions">
+        <a href="{% url 'download_ticket' booking.pk %}" class="btn-primary">
+            <i class="fa fa-download"></i> PDF Ticket yuklab olish
+        </a>
+        <a href="{% url 'my_bookings' %}" class="btn-outline">
+            <i class="fa fa-list"></i> Barcha bronlarim
+        </a>
+    </div>
+</div>
+
+{% endblock %}
