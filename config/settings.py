@@ -8,14 +8,11 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-SECRET_KEY = os.environ.get(
-    'DJANGO_SECRET_KEY',
-    'django-insecure-s+74#jobr!2sh8v39=8p^9-!g5lnzgp$ed4#*dbhu!nsi!c*6n',
-)
+SECRET_KEY = 'django-insecure-s+74#jobr!2sh8v39=8p^9-!g5lnzgp$ed4#*dbhu!nsi!c*6n'
 
-DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
+DEBUG = False
 
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = ["*"]
 
 
 INSTALLED_APPS = [
